@@ -9,7 +9,7 @@ using namespace cv;
 
 // serial speed -> 115,000
 
-VideoCapture* getUserFile()
+inline VideoCapture* getUserFile()
 {
     std::string filepath{};
     std::cout << "Video file to display (filepath) --> ";
@@ -24,7 +24,7 @@ VideoCapture* getUserFile()
     return cap;
 }
 
-const std::string getUserPort() 
+const inline std::string getUserPort() 
 {
     std::string port{};
     std::cout << "Port to access (e.g. COM4) --> ";
@@ -33,7 +33,7 @@ const std::string getUserPort()
     return port;
 }
 
-const std::string findAvg(int sum, int total) 
+const inline std::string findAvg(int sum, int total) 
 {
     std::string avg = std::to_string((sum / total));
     assert(avg.size() <= 3); // "COLOR VALUE GREATER THAN 3?? BUT HOW???"
@@ -102,7 +102,8 @@ int main(int argc, char *argv[])
             std::cout << avg.c_str() << std::endl;
         #endif
         
-        if (!outputPort->writeSerialPort(avg.c_str(), (sizeof(char) * 10))) 
+        // send avg to serial port with buffer of 10 chars (3 for each color digit, plus a carriage return)
+        if (!outputPort->writeSerialPort(avg.c_str(), (sizeof(char) * 10)))
         {
             #ifdef NDEBUG
                 std::cerr << "Error (!): Could not write to serial output." << std::endl;

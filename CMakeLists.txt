@@ -13,7 +13,8 @@ add_executable(TinyTV
     ./src/serialComm.cpp
     ./include/serialComm.hpp)
 
-target_link_libraries(TinyTV ${OpenCV_LIBS})
+target_link_libraries(TinyTV PRIVATE ${OpenCV_LIBS})
+target_compile_options(TinyTV PRIVATE -Wall)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
