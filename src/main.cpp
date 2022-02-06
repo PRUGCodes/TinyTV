@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         };
 
         putText(frame, "press esc to exit", Point(5,15), FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2, LINE_4);
-        imshow("COW_WINDOW", frame);
+        imshow("", frame);
         auto runTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
         #ifdef DEBUG
             std::cout << runTime << " ms\n";
