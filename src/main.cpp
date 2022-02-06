@@ -48,35 +48,28 @@ const std::string findAvg(int sum, int total)
     return avg;
 }
 
-
-
-
-
-
 int main(int argc, char *argv[])
 {
     VideoCapture* cap = getUserFile();
     const std::uint16_t width = static_cast<int>(cap->get(CAP_PROP_FRAME_WIDTH));
     const std::uint16_t height = static_cast<int>(cap->get(CAP_PROP_FRAME_HEIGHT));
-    const std::uint32_t total = width*height;
+    const std::uint32_t total = (width * height);
     const std::uint64_t totalFrames = static_cast<int>(cap->get(CAP_PROP_FRAME_COUNT));
 
     SerialPort* outputPort = new SerialPort(getUserPort().c_str());
     
-    int fps = static_cast<int>(cap->get(CAP_PROP_FPS));
+    std::int_fast16_t fps = static_cast<int>(cap->get(CAP_PROP_FPS));
     std::cout << "FPS: " << fps << std::endl;
     std::cout << "Width: " << width << std::endl;
     std::cout << "Height: " << height << std::endl;
 
-    assert(outputPort->isConnected()); 
-
-
+    //assert(outputPort->isConnected()); 
 
     int i = 0;
     // start video loop
     while (true) 
     {
-        //auto startTime = std::chrono::high_resolution_clock::now();
+        auto startTime = std::chrono::high_resolution_clock::now();
         i++;
         Mat frame;
         if (!cap->read(frame))
@@ -97,29 +90,43 @@ int main(int argc, char *argv[])
                 bsum += pixel[2];
             }
         }
-        std::cout << i << " / " << totalFrames << "\n";
         
         std::string avg{""};
         avg = avg + findAvg(bsum, total);
         avg = avg + findAvg(gsum, total);
         avg = avg + findAvg(rsum, total);
+        avg = avg + "\n";
 
+        #ifdef DEBUG
+            std::cout << i << " / " << totalFrames << "\n";
+            std::cout << avg.c_str() << std::endl;
+        #endif
         
-        std::cout << avg.c_str() << std::endl;
-        
-        if (!outputPort->writeSerialPort(avg.c_str(), sizeof(avg))) 
+        if (!outputPort->writeSerialPort(avg.c_str(), (sizeof(char) * 10))) 
         {
-            std::cerr << "ERROR! COULD NOT WRITE TO SERIAL PORT!!!! :(" << std::endl;
+            #ifdef NDEBUG
+                std::cerr << "Error (!): Could not write to serial output." << std::endl;
+                break;
+            #endif
         };
 
+        putText(frame, "press esc to exit", Point(5,15), FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2, LINE_4);
         imshow("COW_WINDOW", frame);
-        //auto endTime = std::chrono::high_resolution_clock::now();
-        //int runTime = (endTime - startTime) / std::chrono::milliseconds(1);
-        if(waitKey(1) == 27)
+        auto runTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+        #ifdef DEBUG
+            std::cout << runTime << " ms\n";
+        #endif
+        int duration = ((1000/fps) - runTime > 0)? (1000/fps) - (runTime) : 1;
+        if(waitKey(duration) == 27)
         {
             std::cout << "escape key pressed! exiting.\n";
             break;
         }
     }
+    cap->release();
+    destroyAllWindows();
+    outputPort->closeSerial();
+    delete cap;
+    delete outputPort;
     return 0;
 }
